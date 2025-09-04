@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Helmet Menu</title>
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: transparent;
+    overflow: hidden;
+}
+
+.menu {
+    position: absolute;
+    top: 50%;           
+    right: 10px;        
+    width: 280px;
+    background: rgba(0,0,0,0.6);
+    padding: 20px;
+    color: white;
+    display: none;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    transform: translateY(-50%);
+    border-radius: 10px;
+}
+
+.menu h2 {
+    margin: 0 0 15px;
+    font-size: 40px;
+    font-weight: bold;
+    color: #ffffff;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 10px;
+}
+
+.control-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.control-row button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+.control-row button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.control-row input {
+    width: 60px;
+    text-align: center;
+    font-size: 16px;
+    background: transparent;
+    color: white;
+    border: none;
+    outline: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.control-row input::-webkit-outer-spin-button,
+.control-row input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.bottom-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.btn-save {
+    background: rgba(46, 204, 113, 0.2);
+    color: rgba(255,255,255,0.8);
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    flex: 1;
+    margin-right: 5px;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+.btn-save:hover {
+    background: rgba(46, 204, 113, 0.4);
+}
+
+.btn-close {
+    background: rgba(231, 76, 60, 0.2);
+    color: rgba(255,255,255,0.8);
+    border: none; 
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    flex: 1;
+    margin-left: 5px;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+.btn-close:hover {
+    background: rgba(231, 76, 60, 0.4);
+}
+
+.menu .copyright {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    user-select: none;
+    pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<div class="menu">
+    <h2>Helmets</h2>
+    <div class="control-row">
+        <button onclick="prevHelmet()">◀</button>
+        <input type="number" id="helmetInput" value="0" min="0" max="128" onchange="updateFromInput()">
+        <button onclick="nextHelmet()">▶</button>
+    </div>
+    <div class="bottom-row">
+        <button class="btn-save" onclick="saveHelmet()">Save</button>
+        <button class="btn-close" onclick="closeMenu()">Close</button>
+    </div>
+    <div class="copyright">Made by SK Official</div>
+</div>
+
+<script>
+let currentHelmet = 0, maxHelmet = 128;
+
+window.addEventListener('message', e => {
+    if (e.data.action === "openMenu") {
+        document.querySelector(".menu").style.display = "block";
+        currentHelmet = e.data.helmet || 0;
+        updateLabel();
+    }
+});
+
+function updateLabel() {
+    document.getElementById("helmetInput").value = currentHelmet;
+    fetch(`https://${GetParentResourceName()}/previewHelmet`, {
+        method: 'POST',
+        body: JSON.stringify({id: currentHelmet})
+    });
+}
+
+function prevHelmet() {
+    currentHelmet = (currentHelmet - 1 + maxHelmet) % maxHelmet;
+    updateLabel();
+}
+
+function nextHelmet() {
+    currentHelmet = (currentHelmet + 1) % maxHelmet;
+    updateLabel();
+}
+
+function updateFromInput() {
+    let val = parseInt(document.getElementById("helmetInput").value);
+    if (!isNaN(val) && val >= 0 && val <= maxHelmet) {
+        currentHelmet = val;
+        updateLabel();
+    }
+}
+
+function saveHelmet() {
+    fetch(`https://${GetParentResourceName()}/saveHelmet`, {
+        method: 'POST',
+        body: JSON.stringify({id: currentHelmet})
+    });
+    document.querySelector(".menu").style.display = "none";
+}
+
+function closeMenu() {
+    fetch(`https://${GetParentResourceName()}/closeMenu`, {method:'POST'});
+    document.querySelector(".menu").style.display = "none";
+}
+</script>
+
+</body>
+</html>
